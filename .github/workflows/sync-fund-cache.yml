@@ -24,6 +24,9 @@ jobs:
       - name: Sync fund data
         run: node scripts/sync-fund-cache.mjs
 
+      - name: Enrich TER and AUM
+        run: node scripts/sync-enrichment.mjs
+
       - name: Commit cache
         run: |
           git config user.name "github-actions[bot]"

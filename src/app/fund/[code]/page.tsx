@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FundDetail } from "@/components/FundDetail";
 import { getCachedFund } from "@/lib/fund-cache";
+import { getHoldingsForScheme } from "@/lib/holdings-cache";
 import { getFundSummary } from "@/lib/fund-service";
 import { getNavHistory } from "@/lib/mfapi";
 
@@ -35,6 +36,8 @@ export default async function FundPage({
     /* chart optional if API slow */
   }
 
+  const holdings = getHoldingsForScheme(schemeCode);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <Link
@@ -43,7 +46,7 @@ export default async function FundPage({
       >
         ← Back to screener
       </Link>
-      <FundDetail fund={fund} chart={chart} />
+      <FundDetail fund={fund} chart={chart} holdings={holdings} />
     </div>
   );
 }

@@ -38,12 +38,14 @@ export function FundTable({ funds, loading }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[960px] text-left text-sm">
+        <table className="w-full min-w-[1100px] text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--surface-2)] text-xs uppercase tracking-wider text-[var(--muted)]">
               <th className="px-3 py-3 font-medium">Fund</th>
               <th className="px-3 py-3 font-medium">Category</th>
               <th className="px-3 py-3 font-medium text-right">NAV</th>
+              <th className="px-2 py-3 font-medium text-right">TER</th>
+              <th className="px-2 py-3 font-medium text-right">AUM</th>
               {RETURN_COLS.map((c) => (
                 <th key={c.key} className="px-2 py-3 font-medium text-right">
                   {c.label}
@@ -75,6 +77,16 @@ export function FundTable({ funds, loading }: Props) {
                 </td>
                 <td className="px-3 py-3 text-right font-mono text-xs">
                   {formatNav(fund.nav)}
+                </td>
+                <td className="px-2 py-3 text-right font-mono text-xs text-[var(--muted)]">
+                  {fund.expenseRatio != null
+                    ? `${fund.expenseRatio.toFixed(2)}%`
+                    : "—"}
+                </td>
+                <td className="px-2 py-3 text-right font-mono text-xs text-[var(--muted)]">
+                  {fund.aumCr != null
+                    ? `${fund.aumCr.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`
+                    : "—"}
                 </td>
                 {RETURN_COLS.map((c) => (
                   <td

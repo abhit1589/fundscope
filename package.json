@@ -6,7 +6,10 @@
     "dev": "next dev",
     "catalog": "node scripts/generate-catalog.mjs",
     "sync": "node scripts/sync-fund-cache.mjs",
-    "sync:all": "npm run catalog && npm run sync",
+    "sync:enrichment": "node scripts/sync-enrichment.mjs",
+    "sync:holdings": "node scripts/sync-holdings.mjs",
+    "sync:all": "npm run catalog && npm run sync && npm run sync:enrichment",
+    "sync:full": "npm run sync:all && npm run sync:holdings",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -24,6 +27,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "xlsx": "^0.18.5"
   }
 }

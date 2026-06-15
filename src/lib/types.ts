@@ -80,3 +80,20 @@ export interface PortfolioHolding {
   investedAmount?: number;
   addedAt: string;
 }
+
+export interface FundHolding {
+  isin?: string;
+  name: string;
+  sector?: string;
+  instrumentType: string;
+  quantity?: number;
+  valueLakh?: number;
+  weightPct: number;
+}
+
+export interface HoldingsSnapshot {
+  asOf: string | null;
+  source: string;
+  portfolioLabel?: string;
+  holdings: FundHolding[];
+}

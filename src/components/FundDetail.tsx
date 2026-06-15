@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { FundSummary } from "@/lib/types";
+import type { FundSummary, HoldingsSnapshot } from "@/lib/types";
 import { formatReturn, returnColor } from "@/lib/returns";
 
 interface ChartPoint {
@@ -12,9 +12,10 @@ interface ChartPoint {
 interface Props {
   fund: FundSummary;
   chart: ChartPoint[];
+  holdings?: HoldingsSnapshot | null;
 }
 
-export function FundDetail({ fund, chart }: Props) {
+export function FundDetail({ fund, chart, holdings }: Props) {
   const [explaining, setExplaining] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [explainError, setExplainError] = useState<string | null>(null);
@@ -181,6 +182,104 @@ export function FundDetail({ fund, chart }: Props) {
           </div>
         </div>
       )}
+
+      <HoldingsSection holdings={holdings} />
+    </div>
+  );
+}
+
+function HoldingsSection({
+  holdings,
+}: {
+  holdings?: HoldingsSnapshot | null;
+}) {
+  if (!holdings?.holdings?.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-6">
+        <h2 className="text-sm font-medium text-white">Full portfolio</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          Holdings not synced yet for this fund. Monthly AMC disclosures are
+          refreshed automatically — check back after the next sync.
+        </p>
+      </div>
+    );
+  }
+
+  const sorted = [...holdings.holdings].sort(
+    (a, b) => b.weightPct - a.weightPct
+  );
+  const equity = sorted.filter((h) => h.instrumentType === "Equity");
+  const debt = sorted.filter((h) => h.instrumentType === "Debt");
+  const other = sorted.filter(
+    (h) => h.instrumentType !== "Equity" && h.instrumentType !== "Debt"
+  );
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-medium text-white">Full portfolio</h2>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            {sorted.length} holdings
+            {holdings.asOf ? ` · as of ${holdings.asOf}` : ""}
+            {holdings.source ? ` · ${holdings.source}` : ""}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
+          {equity.length > 0 && (
+            <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+              Equity {equity.length}
+            </span>
+          )}
+          {debt.length > 0 && (
+            <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+              Debt {debt.length}
+            </span>
+          )}
+          {other.length > 0 && (
+            <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+              Other {other.length}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[720px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-[var(--border)] text-xs uppercase tracking-wide text-[var(--muted)]">
+              <th className="px-2 py-2 font-medium">Instrument</th>
+              <th className="px-2 py-2 font-medium">Type</th>
+              <th className="px-2 py-2 font-medium">Sector</th>
+              <th className="px-2 py-2 font-medium text-right">% NAV</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((h, i) => (
+              <tr
+                key={`${h.isin ?? h.name}-${i}`}
+                className="border-b border-[var(--border)]/50"
+              >
+                <td className="px-2 py-2">
+                  <p className="text-white">{h.name}</p>
+                  {h.isin && (
+                    <p className="text-[10px] text-[var(--muted)]">{h.isin}</p>
+                  )}
+                </td>
+                <td className="px-2 py-2 text-xs text-[var(--muted)]">
+                  {h.instrumentType}
+                </td>
+                <td className="px-2 py-2 text-xs text-[var(--muted)]">
+                  {h.sector ?? "—"}
+                </td>
+                <td className="px-2 py-2 text-right font-mono text-xs text-white">
+                  {h.weightPct.toFixed(2)}%
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
