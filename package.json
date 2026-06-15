@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "catalog": "node scripts/generate-catalog.mjs",
+    "sync": "node scripts/sync-fund-cache.mjs",
+    "sync:all": "npm run catalog && npm run sync",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

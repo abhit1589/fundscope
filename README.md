@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FundScope — India MF Screener
 
-## Getting Started
+Personal mutual fund screener. Free on Vercel. Fund data from AMFI via [MFapi.in](https://mfapi.in). Optional AI uses your OpenAI key.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
+npm run sync:all   # first time: download & cache ~3,800 funds (~10–15 min)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). After sync, pages load **instantly** from cache.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Data caching
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| What | How |
+|------|-----|
+| **~3,800 funds** | Direct · growth · open-ended (not all 14,000 AMFI variants) |
+| **Cache file** | `src/data/fund-cache.json` (NAV + returns) |
+| **Refresh** | `npm run sync:all` locally, or daily GitHub Action |
 
-## Learn More
+**Why not 2 minutes?** Listing 14k schemes is fast (~30s). Computing returns needs **one NAV history call per fund** — ~3,800 calls ≈ **10–15 min** with parallel requests. That's normal.
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy to Vercel (free, with caching)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Vercel **cannot write files at runtime** (serverless). Use this pattern:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **GitHub Action** (included) runs daily → updates `fund-cache.json` → pushes to repo
+2. **Vercel auto-deploys** with the new JSON baked in
+3. App reads cache from disk — **no live API calls** for the screener
 
-## Deploy on Vercel
+### Steps
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push repo to GitHub
+2. Enable GitHub Actions (workflow: `.github/workflows/sync-fund-cache.yml`)
+3. Run workflow once manually, or locally:
+   ```bash
+   npm run sync:all
+   git add src/data/*.json && git commit -m "add fund cache" && git push
+   ```
+4. Import project on [vercel.com](https://vercel.com)
+5. Optional: add `OPENAI_API_KEY` for AI explain on fund pages
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Do not** run `sync` during Vercel build — it will timeout. Always commit the cache file.
+
+## Optional AI explain
+
+```
+OPENAI_API_KEY=sk-your-key
+```
+
+## Features
+
+- **Screener** — all direct · growth · open-ended funds, category filter, pagination
+- **Fund detail** — NAV, returns, chart, optional AI summary
+- **Portfolio** — manual units in browser (not CAS import)
+
+Not investment advice.
