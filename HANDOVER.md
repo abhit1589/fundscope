@@ -168,7 +168,11 @@ git add -A && git commit -m "..." && git push origin master
 
 ## Git history
 
-See `git log` — latest commit should include search, returns safety, inactive filter, and HANDOVER.md.
+```
+b35d7d1 Fix local fund search and harden returns display
+612ff7a Add TER, AUM, full holdings sync and refresh fund cache
+99f81ac Add FundScope India MF screener with daily cache sync
+```
 
 ---
 
