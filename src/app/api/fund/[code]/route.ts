@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { getCachedFund } from "@/lib/fund-cache";
 import { getFundSummary } from "@/lib/fund-service";
 import { getNavHistory } from "@/lib/mfapi";
+import { normalizeReturns } from "@/lib/returns";
 
 export const revalidate = 3600;
 
@@ -14,10 +16,13 @@ export async function GET(
     return NextResponse.json({ error: "Invalid scheme code" }, { status: 400 });
   }
 
-  const fund = await getFundSummary(schemeCode, { fullReturns: true });
-  if (!fund) {
+  const cached = getCachedFund(schemeCode);
+  const raw =
+    cached ?? (await getFundSummary(schemeCode, { fullReturns: true }));
+  if (!raw) {
     return NextResponse.json({ error: "Fund not found" }, { status: 404 });
   }
+  const fund = { ...raw, returns: normalizeReturns(raw.returns) };
 
   const fiveYearsAgo = new Date();
   fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);

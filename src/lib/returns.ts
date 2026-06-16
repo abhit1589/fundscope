@@ -92,6 +92,30 @@ export function buildReturns(r: {
   };
 }
 
+/** Ensure every return period exists (older cache / live stubs may omit keys). */
+export function normalizeReturns(
+  returns: FundSummary["returns"] | undefined
+): FundSummary["returns"] {
+  if (!returns) return buildReturns({});
+  const flat = {
+    oneMonth: returns.oneMonth?.value ?? null,
+    threeMonth: returns.threeMonth?.value ?? null,
+    sixMonth: returns.sixMonth?.value ?? null,
+    ytd: returns.ytd?.value ?? null,
+    oneYear: returns.oneYear?.value ?? null,
+    threeYear: returns.threeYear?.value ?? null,
+    fiveYear: returns.fiveYear?.value ?? null,
+  };
+  return buildReturns(flat);
+}
+
+export function getReturnValue(
+  fund: FundSummary,
+  key: keyof FundSummary["returns"]
+): number | null {
+  return fund.returns?.[key]?.value ?? null;
+}
+
 export function formatReturn(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "—";
   const sign = value >= 0 ? "+" : "";

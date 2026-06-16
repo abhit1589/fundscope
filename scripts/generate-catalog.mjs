@@ -8,7 +8,11 @@ function isDirectGrowthOpenEnded(name) {
   if (!/\bgrowth\b/i.test(name)) return false;
   if (/\b(dividend|idcw|id cw|bonus|reinvestment|demat|reward)\b/i.test(name))
     return false;
-  if (/\b(fmp|fixed maturity|interval fund|close[- ]ended)\b/i.test(name))
+  if (/\b(fmp|fixed maturity|fixed term|interval fund|close[- ]ended)\b/i.test(name))
+    return false;
+  if (/\b(cpo|daf|capital protection|segregated|segregate)\b/i.test(name))
+    return false;
+  if (/\b\d+\s*(m|d)\b/i.test(name) && /\b(days?|month)\b/i.test(name))
     return false;
   if (
     /\b(weekly|monthly|quarterly|half[- ]yearly|daily|annual)\b/i.test(name) &&

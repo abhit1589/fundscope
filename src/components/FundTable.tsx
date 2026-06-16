@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { FundSummary } from "@/lib/types";
-import { formatReturn, formatNav, returnColor } from "@/lib/returns";
+import { formatReturn, formatNav, returnColor, getReturnValue } from "@/lib/returns";
 
 interface Props {
   funds: FundSummary[];
@@ -88,14 +88,17 @@ export function FundTable({ funds, loading }: Props) {
                     ? `${fund.aumCr.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`
                     : "—"}
                 </td>
-                {RETURN_COLS.map((c) => (
-                  <td
-                    key={c.key}
-                    className={`px-2 py-3 text-right font-mono text-xs ${returnColor(fund.returns[c.key].value)}`}
-                  >
-                    {formatReturn(fund.returns[c.key].value)}
-                  </td>
-                ))}
+                {RETURN_COLS.map((c) => {
+                  const value = getReturnValue(fund, c.key);
+                  return (
+                    <td
+                      key={c.key}
+                      className={`px-2 py-3 text-right font-mono text-xs ${returnColor(value)}`}
+                    >
+                      {formatReturn(value)}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

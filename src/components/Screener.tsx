@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FundSummary } from "@/lib/types";
 import { CATEGORIES } from "@/lib/categories";
+import { getReturnValue } from "@/lib/returns";
 import { FundTable } from "./FundTable";
 
 type SortKey = "oneYear" | "threeYear" | "expenseRatio" | "nav" | "name";
@@ -22,7 +23,7 @@ export function Screener() {
   const [catalogSource, setCatalogSource] = useState<string>("");
   const [cacheDate, setCacheDate] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<
-    { schemeCode: number; schemeName: string }[]
+    { schemeCode: number; schemeName: string; fundHouse?: string }[]
   >([]);
   const [searching, setSearching] = useState(false);
 
@@ -76,7 +77,11 @@ export function Screener() {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(search)}`);
         const data = (await res.json()) as {
-          results: { schemeCode: number; schemeName: string }[];
+          results: {
+            schemeCode: number;
+            schemeName: string;
+            fundHouse?: string;
+          }[];
         };
         setSearchResults(data.results ?? []);
       } finally {
@@ -103,14 +108,14 @@ export function Screener() {
           return (a.expenseRatio ?? 99) - (b.expenseRatio ?? 99);
         case "oneYear":
           return (
-            (b.returns.oneYear.value ?? -999) -
-            (a.returns.oneYear.value ?? -999)
+            (getReturnValue(b, "oneYear") ?? -999) -
+            (getReturnValue(a, "oneYear") ?? -999)
           );
         case "threeYear":
         default:
           return (
-            (b.returns.threeYear.value ?? -999) -
-            (a.returns.threeYear.value ?? -999)
+            (getReturnValue(b, "threeYear") ?? -999) -
+            (getReturnValue(a, "threeYear") ?? -999)
           );
       }
     });
@@ -166,14 +171,19 @@ export function Screener() {
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
             />
             {searchResults.length > 0 && (
-              <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--surface-2)] shadow-xl">
+              <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--surface-2)] shadow-xl">
                 {searchResults.map((r) => (
                   <li key={r.schemeCode}>
                     <a
                       href={`/fund/${r.schemeCode}`}
                       className="block w-full px-3 py-2 text-left text-sm hover:bg-emerald-500/10"
                     >
-                      {r.schemeName}
+                      <span className="text-white">{shortSearchName(r.schemeName)}</span>
+                      {r.fundHouse && (
+                        <span className="mt-0.5 block text-xs text-[var(--muted)]">
+                          {r.fundHouse}
+                        </span>
+                      )}
                     </a>
                   </li>
                 ))}
@@ -256,4 +266,12 @@ export function Screener() {
       <FundTable funds={sorted} loading={loading} />
     </div>
   );
+}
+
+function shortSearchName(name: string): string {
+  return name
+    .replace(/ - Direct Plan - Growth$/i, "")
+    .replace(/ - Growth Option - Direct Plan$/i, "")
+    .replace(/ - Direct Growth$/i, "")
+    .replace(/ - Growth$/i, "");
 }

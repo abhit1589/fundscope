@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { FundSummary, PortfolioHolding } from "@/lib/types";
-import { formatReturn, returnColor } from "@/lib/returns";
+import { formatReturn, returnColor, getReturnValue } from "@/lib/returns";
 
 const STORAGE_KEY = "fundscope-portfolio";
 
@@ -104,9 +104,9 @@ export default function PortfolioPage() {
                       </Link>
                       {fund && (
                         <p
-                          className={`mt-1 font-mono text-xs ${returnColor(fund.returns.oneYear.value)}`}
+                          className={`mt-1 font-mono text-xs ${returnColor(getReturnValue(fund, "oneYear"))}`}
                         >
-                          1Y {formatReturn(fund.returns.oneYear.value)} · NAV ₹
+                          1Y {formatReturn(getReturnValue(fund, "oneYear"))} · NAV ₹
                           {fund.nav.toFixed(2)}
                         </p>
                       )}

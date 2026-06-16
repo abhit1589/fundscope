@@ -5,6 +5,7 @@ import { getCachedFund } from "@/lib/fund-cache";
 import { getHoldingsForScheme } from "@/lib/holdings-cache";
 import { getFundSummary } from "@/lib/fund-service";
 import { getNavHistory } from "@/lib/mfapi";
+import { normalizeReturns } from "@/lib/returns";
 
 export default async function FundPage({
   params,
@@ -16,9 +17,10 @@ export default async function FundPage({
   if (!schemeCode) notFound();
 
   const cached = getCachedFund(schemeCode);
-  const fund =
+  const raw =
     cached ?? (await getFundSummary(schemeCode, { fullReturns: true }));
-  if (!fund) notFound();
+  if (!raw) notFound();
+  const fund = { ...raw, returns: normalizeReturns(raw.returns) };
 
   let chart: { date: string; nav: number }[] = [];
   try {

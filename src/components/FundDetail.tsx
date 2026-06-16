@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FundSummary, HoldingsSnapshot } from "@/lib/types";
-import { formatReturn, returnColor } from "@/lib/returns";
+import { formatReturn, returnColor, getReturnValue } from "@/lib/returns";
 
 interface ChartPoint {
   date: string;
@@ -104,9 +104,9 @@ export function FundDetail({ fund, chart, holdings }: Props) {
           ).map((key) => (
             <Stat
               key={key}
-              label={fund.returns[key].label}
-              value={formatReturn(fund.returns[key].value)}
-              color={returnColor(fund.returns[key].value)}
+              label={fund.returns?.[key]?.label ?? key}
+              value={formatReturn(getReturnValue(fund, key))}
+              color={returnColor(getReturnValue(fund, key))}
             />
           ))}
         </div>

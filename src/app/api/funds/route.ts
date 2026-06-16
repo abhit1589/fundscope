@@ -3,7 +3,8 @@ import { getCachedFunds, getCacheMeta } from "@/lib/fund-cache";
 import { getFundSummaries } from "@/lib/fund-service";
 import { getDirectGrowthCatalog } from "@/lib/catalog";
 import { inferCategory } from "@/lib/categories";
-import { buildReturns } from "@/lib/returns";
+import { isActiveFund } from "@/lib/catalog-filter";
+import { buildReturns, normalizeReturns } from "@/lib/returns";
 import type { FundSummary } from "@/lib/types";
 
 export const revalidate = 86400;
@@ -40,12 +41,17 @@ export async function GET(request: Request) {
     const fromCache = cache.filter((f) => codes.includes(f.schemeCode));
     if (fromCache.length === codes.length) {
       return NextResponse.json({
-        funds: fromCache,
+        funds: fromCache.map((f) => ({
+          ...f,
+          returns: normalizeReturns(f.returns),
+        })),
         count: fromCache.length,
         source: "cache",
       });
     }
-    const funds = await getFundSummaries(codes, { fullReturns: true });
+    const funds = (await getFundSummaries(codes, { fullReturns: true })).map(
+      (f) => ({ ...f, returns: normalizeReturns(f.returns) })
+    );
     return NextResponse.json({ funds, count: funds.length, source: "live" });
   }
 
@@ -67,7 +73,9 @@ export async function GET(request: Request) {
   }[];
 
   if (hasCache) {
-    catalogEntries = cache.map((f) => ({
+    catalogEntries = cache
+      .filter(isActiveFund)
+      .map((f) => ({
       schemeCode: f.schemeCode,
       schemeName: f.schemeName,
       category: f.category,
@@ -102,11 +110,16 @@ export async function GET(request: Request) {
     const byCode = new Map(cache.map((f) => [f.schemeCode, f]));
     funds = slice
       .map((s) => byCode.get(s.schemeCode))
-      .filter((f): f is FundSummary => f != null);
+      .filter((f): f is FundSummary => f != null)
+      .map((f) => ({ ...f, returns: normalizeReturns(f.returns) }));
   } else {
     const enriched = await getFundSummaries(codes, { fullReturns: true });
     const byCode = new Map(enriched.map((f) => [f.schemeCode, f]));
-    funds = slice.map((entry) => byCode.get(entry.schemeCode) ?? catalogStub(entry));
+    funds = slice
+      .map((entry) => {
+        const f = byCode.get(entry.schemeCode) ?? catalogStub(entry);
+        return { ...f, returns: normalizeReturns(f.returns) };
+      });
   }
 
   return NextResponse.json(
